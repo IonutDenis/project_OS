@@ -8,6 +8,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <signal.h>
+#include <sys/wait.h>
 
 #ifndef TREASURE_COMMON_H
 #define TREASURE_COMMON_H
