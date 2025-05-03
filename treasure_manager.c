@@ -2,10 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
+#include <fcntl.h>
+#include <errno.h>
+
+#ifdef _WIN32
+#include <direct.h>                   
+#define mkdir(path, mode) _mkdir(path) 
+#endif
 
 #define MAX_NAME 50
 #define MAX_CLUE 100
@@ -56,25 +62,21 @@ void log_operation(const char *hunt_id, const char *message)
 int create_hunt_dir(const char *hunt_id)
 {
     char path[256];
-    snprintf(path, sizeof(path), "%s/%s", HUNT_DIR, hunt_id);
 
-    if (access(path, F_OK) == -1)
+    snprintf(path, sizeof(path), "%s", HUNT_DIR);
+    if (mkdir(path, 0755) == -1 && errno != EEXIST)
     {
-      
-        int fd = open(path, O_CREAT | O_WRONLY, 0644);
-        if (fd == -1)
-        {
-            perror("Failed to create hunt directory file");
-            return -1;
-        }
-
-        close(fd);
-        if (unlink(path) == -1)
-        {
-            perror("Failed to remove temporary file to leave directory");
-            return -1;
-        }
+        perror("Failed to create hunts directory");
+        return -1;
     }
+
+    snprintf(path, sizeof(path), "%s/%s", HUNT_DIR, hunt_id);
+    if (mkdir(path, 0755) == -1 && errno != EEXIST)
+    {
+        perror("Failed to create hunt directory");
+        return -1;
+    }
+
     return 0;
 }
 
